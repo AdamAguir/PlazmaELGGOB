@@ -1,10 +1,126 @@
 ﻿@page "/"
+@using PlazmaELGGOB.Moddel;
 
-<PageTitle>Index</PageTitle>
+<style>
+    .keyButton {
+        width: 80px;
+        height: 80px;
+        border: none;
+        border-radius: 40px;
+        outline: none;
+        background: #b71540;
+        color: white;
+        cursor: pointer;
+        box-shadow: 0 5px 10px rgba(0, 0, 0, 0.15);
+        text-align: center;
+        padding-top: 30px;
+    }
 
-<h1>Hello, world!</h1>
+        .keyButton:hover {
+            background: #eb2f06;
+        }
 
-Welcome to your new app.
+    .keyButton_cliecked {
+        width: 80px;
+        height: 80px;
+        border: none;
+        border-radius: 40px;
+        outline: none;
+        background: #eb2f06;
+        color: white;
+        cursor: pointer;
+        box-shadow: 0 5px 10px rgba(0, 0, 0, 0.15);
+        text-align: center;
+        padding-top: 30px;
+        -webkit-box-shadow: inset 0px 0px 5px #c1c1c1;
+        -moz-box-shadow: inset 0px 0px 5px #c1c1c1;
+        box-shadow: inset 0px 0px 5px #c1c1c1;
+    }
+</style>
+<PageTitle>Game</PageTitle>
 
-<SurveyPrompt Title="How is Blazor working for you?" />
+<h1>Plazma Elggob</h1>
 
+<body>
+    @*here are the keypad buttons*@
+    <div class="container w-50 mx-auto">
+        @for (int i = 0; i < 4; i++)
+        {
+            <div class="row">
+                @for (int j = 0; j < 4; j++)
+                {
+                    int slot = (4 * i) + j;
+                    @if (!KeyPad[slot].Clicked)
+                    {
+                        <div class="keyButton m-1" @onclick="@(() => KeyPadClick(slot))">@KeyPad[slot].Letter</div>
+                    }
+                    else
+                    {
+                        <div class="keyButton_cliecked m-1" @onclick="@(() => KeyPadClick(slot))">@KeyPad[slot].Letter</div>
+                    }
+                }
+            </div>
+        }
+    </div>
+    <h1>@ClickedLetters</h1>
+</body>
+
+@code {
+    private static char[] chars = new char[] { 'A', 'T', 'L', 'U', 'N', 'P', 'P', 'L', 'I', 'C', 'K', 'E', 'T', 'O', 'D', 'J' };
+    private static List<BoggleKey> KeyPad = constructKeypad(chars);
+    private static string ClickedLetters = "";
+    private static int sender = -1;
+    /// <summary>
+    /// Please pass in a random char array for the letters.
+    /// This function is polite enough to do the rest and return
+    /// A list of boggle keys. Each key is given a list of what
+    /// Keys can follow it.
+    /// </summary>
+    /// <param name="chars"></param>
+    /// <returns></returns>
+    private static List<BoggleKey> constructKeypad(char[] chars)
+    {
+        List<BoggleKey> keys = new List<BoggleKey>();
+
+        keys.Add(new BoggleKey(0, chars[0], false, new int[] { 1, 4, 5 }));
+        keys.Add(new BoggleKey(1, chars[1], false, new int[] { 0, 2, 4, 5, 6 }));
+        keys.Add(new BoggleKey(2, chars[2], false, new int[] { 1, 3, 5, 6, 7 }));
+        keys.Add(new BoggleKey(3, chars[3], false, new int[] { 2, 6, 7 }));
+        keys.Add(new BoggleKey(4, chars[4], false, new int[] { 0, 1, 5, 8, 9 }));
+        keys.Add(new BoggleKey(5, chars[5], false, new int[] { 0, 1, 2, 4, 6, 8, 9, 10 }));
+        keys.Add(new BoggleKey(6, chars[6], false, new int[] { 1, 2, 3, 5, 7, 9, 10, 11 }));
+        keys.Add(new BoggleKey(7, chars[7], false, new int[] { 2, 3, 6, 10, 11 }));
+        keys.Add(new BoggleKey(8, chars[8], false, new int[] { 4, 5, 9, 12, 13 }));
+        keys.Add(new BoggleKey(9, chars[9], false, new int[] { 4, 5, 6, 8, 10, 12, 13, 14 }));
+        keys.Add(new BoggleKey(10, chars[10], false, new int[] { 5, 6, 7, 9, 11, 13, 14, 15 }));
+        keys.Add(new BoggleKey(11, chars[11], false, new int[] { 6, 7, 10, 14, 15 }));
+        keys.Add(new BoggleKey(12, chars[12], false, new int[] { 8, 9, 13 }));
+        keys.Add(new BoggleKey(13, chars[13], false, new int[] { 8, 9, 10, 12, 14 }));
+        keys.Add(new BoggleKey(14, chars[14], false, new int[] { 9, 10, 11, 13, 15 }));
+        keys.Add(new BoggleKey(15, chars[15], false, new int[] { 10, 11, 14 }));
+
+        return keys;
+    }
+
+    public static void KeyPadClick(int key)
+    {
+        if (sender == -1 || CheckMoveList(key))
+        {
+            sender = key;
+            KeyPad[key].Clicked = true;
+            ClickedLetters += KeyPad[key].Letter;
+        }
+
+    }
+    public static bool CheckMoveList(int key)
+    {
+        foreach (int move in KeyPad[key].allowedIndexes)
+        {
+            if (move == sender)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+}
