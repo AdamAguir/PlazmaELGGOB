@@ -110,6 +110,10 @@
             KeyPad[key].Clicked = true;
             ClickedLetters += KeyPad[key].Letter;
         }
+        else
+        {
+            ResetKeyPad();
+        }
 
     }
     public static bool CheckMoveList(int key)
@@ -122,5 +126,24 @@
             }
         }
         return false;
+    }
+    public static bool IfWord()
+    {
+        //TODO: use ClickedLetters
+        return false;
+    }
+    public static int CalcPoints()
+    {
+        //TODO: use ClickedLetters
+        return 0;
+    }
+    public static void ResetKeyPad()
+    {
+        foreach (BoggleKey key in KeyPad)
+        {
+            key.Clicked = false;
+        }
+        ClickedLetters = "";
+        sender = -1;
     }
 }
