@@ -71,7 +71,6 @@
                     }
                 </div>
             }
-
         </div>
         <div class="col-3 float-end">
         </div>
@@ -79,6 +78,7 @@
 </body>
 
 @code {
+    //use all uppercase characters to make it easier to read.
     private static char[] chars = new char[] { 'A', 'T', 'L', 'U', 'N', 'P', 'P', 'L', 'I', 'C', 'K', 'E', 'T', 'O', 'D', 'J' };
     private static List<BoggleKey> KeyPad = constructKeypad(chars);
     private static string ClickedLetters = "";
@@ -162,7 +162,7 @@
     }
     public static void CalcPoints()
     {
-        //TODO: use ClickedLetters for calculation
+        //TODO: use ClickedLetters for calculation, modify total points, show how many points were scored.
         totalPoints += 100;
     }
     public static void ResetKeyPad()
