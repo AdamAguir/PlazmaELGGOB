@@ -20,7 +20,7 @@
             background: #091580;
         }
 
-    .keyButton_cliecked {
+    .keyButton_clicked {
         width: 80px;
         height: 80px;
         border: none;
@@ -39,30 +39,43 @@
 </style>
 <PageTitle>Game</PageTitle>
 
-<h1>Plazma Elggob</h1>
+<h1 class="text-center">Plazma Elggob</h1>
 
 <body>
-    @*here are the keypad buttons*@
-    <div class="container w-50 mx-auto">
-        @for (int i = 0; i < 4; i++)
-        {
+    <div class="container">
+        <div class="col-3 float-start">
             <div class="row">
-                @for (int j = 0; j < 4; j++)
-                {
-                    int slot = (4 * i) + j;
-                    @if (!KeyPad[slot].Clicked)
-                    {
-                        <div class="keyButton m-1" @onclick="@(() => KeyPadClick(slot))">@KeyPad[slot].Letter</div>
-                    }
-                    else
-                    {
-                        <div class="keyButton_cliecked m-1" @onclick="@(() => KeyPadClick(slot))">@KeyPad[slot].Letter</div>
-                    }
-                }
+                <h1>@ClickedLetters</h1>
             </div>
-        }
+            <div class="row">
+                <h1>@totalPoints</h1>
+            </div>
+        </div>
+        <div class="col-6 mx-auto">
+            @*here are the keypad buttons*@
+
+            @for (int i = 0; i < 4; i++)
+            {
+                <div class="row">
+                    @for (int j = 0; j < 4; j++)
+                    {
+                        int slot = (4 * i) + j;
+                        @if (!KeyPad[slot].Clicked)
+                        {
+                            <div class="keyButton m-1" @onclick="@(() => KeyPadClick(slot))">@KeyPad[slot].Letter</div>
+                        }
+                        else
+                        {
+                            <div class="keyButton_clicked m-1" @onclick="@(() => KeyPadClick(slot))">@KeyPad[slot].Letter</div>
+                        }
+                    }
+                </div>
+            }
+
+        </div>
+        <div class="col-3 float-end">
+        </div>
     </div>
-    <h1>@ClickedLetters</h1>
 </body>
 
 @code {
@@ -70,6 +83,7 @@
     private static List<BoggleKey> KeyPad = constructKeypad(chars);
     private static string ClickedLetters = "";
     private static int sender = -1;
+    private static int totalPoints = 0;
     /// <summary>
     /// Please pass in a random char array for the letters.
     /// This function is polite enough to do the rest and return
@@ -106,12 +120,26 @@
     {
         if (sender == -1 || CheckMoveList(key))
         {
-            sender = key;
-            KeyPad[key].Clicked = true;
-            ClickedLetters += KeyPad[key].Letter;
+            if (!KeyPad[key].Clicked)
+            {
+                sender = key;
+                KeyPad[key].Clicked = true;
+                ClickedLetters += KeyPad[key].Letter;
+            }
+            else
+            {
+                ResetKeyPad();
+            }
         }
         else
         {
+            if (key == sender)
+            {
+                if (IfWord())
+                {
+                    CalcPoints();
+                }
+            }
             ResetKeyPad();
         }
 
@@ -130,12 +158,12 @@
     public static bool IfWord()
     {
         //TODO: use ClickedLetters
-        return false;
+        return true;
     }
-    public static int CalcPoints()
+    public static void CalcPoints()
     {
-        //TODO: use ClickedLetters
-        return 0;
+        //TODO: use ClickedLetters for calculation
+        totalPoints += 100;
     }
     public static void ResetKeyPad()
     {
