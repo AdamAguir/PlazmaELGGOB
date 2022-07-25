@@ -163,7 +163,29 @@
     public static void CalcPoints()
     {
         //TODO: use ClickedLetters for calculation, modify total points, show how many points were scored.
-        totalPoints += 100;
+        if (IfWord())
+        {
+            if (ClickedLetters.Length <= 4)
+            {
+                totalPoints += 1;
+            }
+            else if (ClickedLetters.Length == 5)
+            {
+                totalPoints += 2;
+            }
+            else if (ClickedLetters.Length == 6)
+            {
+                totalPoints += 3;
+            }
+            else if (ClickedLetters.Length == 7)
+            {
+                totalPoints += 5;
+            }
+            else
+            {
+                totalPoints += 11;
+            }
+        }
     }
     public static void ResetKeyPad()
     {
