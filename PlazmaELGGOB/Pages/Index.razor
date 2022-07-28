@@ -50,7 +50,10 @@
                     Please enter username:<input id="username" />
                 </div>
                 <div class="col-1">
-                    <button type="button" class="btn btn-primary">Submit</button>
+                    <button type="button" class="usernameSubmitBtn btn-primary" @onclick="@(() => startTimer())">Submit</button>
+                </div>
+                <div class="row">
+                    <h2>Timer @timeRemaning</h2>
                 </div>
 
             <div class="row">
@@ -94,6 +97,7 @@
     private static int sender = -1;
     private static int totalPoints = 0;
     private static Timer aTimer;
+    private static int timeRemaning;
     /// <summary>
     /// Please pass in a random char array for the letters.
     /// This function is polite enough to do the rest and return
@@ -205,5 +209,20 @@
         }
         ClickedLetters = "";
         sender = -1;
+    }
+
+    public static void startTimer()
+    {
+        timeRemaning = 60;
+        //create timer at 1 second interval
+        aTimer = new System.Timers.Timer(1000);
+        aTimer.Elapsed += OnTimedEvent;
+        aTimer.AutoReset = true;
+        aTimer.Enabled = true;
+    }
+
+    private static void OnTimedEvent(Object source, ElapsedEventArgs e)
+    {
+        timeRemaning -= 1;
     }
 }
