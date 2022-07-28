@@ -1,4 +1,4 @@
-﻿namespace PlazmaELGGOB.Moddel
+﻿namespace PlazmaELGGOB.Model
 {
     public class BoggleKey
     {

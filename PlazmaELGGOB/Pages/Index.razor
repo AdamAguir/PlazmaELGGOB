@@ -3,6 +3,12 @@
 @using System;
 @using System.Timers;
 
+@using PlazmaELGGOB.Model;
+@*@using Microsoft.AspNetCore.SignalR.Client
+@inject NavigationManager navManager
+@implements IAsyncDisposable*@
+@inject NavigationManager navManager
+@implements IAsyncDisposable*@
 <style>
     .keyButton {
         width: 80px;
@@ -85,17 +91,27 @@
             }
         </div>
         <div class="col-3 float-end">
+            
         </div>
     </div>
 </body>
 
 @code {
     //use all uppercase characters to make it easier to read.
-    private static char[] chars = new char[] { 'A', 'T', 'L', 'U', 'N', 'P', 'P', 'L', 'I', 'C', 'K', 'E', 'T', 'O', 'D', 'J' };
+    private static char[] chars = generateRandomArray();
     private static List<BoggleKey> KeyPad = constructKeypad(chars);
     private static string ClickedLetters = "";
     private static int sender = -1;
     private static int totalPoints = 0;
+    //private HubConnection? hubConnection;
+    private List<string> messages = new();
+    private string? userInput;
+    private string? messageInput;
+    private DisplayPointMessage player = new DisplayPointMessage();
+    private DisplayPointMessage opponet = new DisplayPointMessage();
+    private GameHistory history = new GameHistory();
+    private static Timer aTimer;
+    private static int timeRemaning;
     private static Timer aTimer;
     private static int timeRemaning;
     /// <summary>
@@ -106,6 +122,47 @@
     /// </summary>
     /// <param name="chars"></param>
     /// <returns></returns>
+
+    private static char[] generateRandomArray()
+    {
+        var rand = new Random();
+        int randomNumber;
+        int count = 0;
+        char[] possibleConsonants = new char[] { 'B', 'C', 'D',
+                                                 'F', 'G', 'H',
+                                                 'J', 'K', 'L',
+                                                 'M', 'N', 'P',
+                                                 'Q', 'R', 'S',
+                                                 'T', 'V', 'W',
+                                                 'X', 'Y', 'Z' };
+        char[] possibleVowels = new char[] { 'A', 'E', 'I', 'O', 'U' };
+        char[] randChars = new char[16];
+        int[] vowelPositions = new int[5];
+
+        for(int i = 0; i < 13; i += 3)
+        {
+            randomNumber = rand.Next(i, i + 2);
+            vowelPositions[count] = randomNumber;
+            count++;
+        }
+
+        for (int i = 0; i < 16; i++)
+        {
+            if (vowelPositions.Contains(i))
+            {
+                randomNumber = rand.Next(0, 4);
+                randChars[i] = possibleVowels[randomNumber];
+            }
+            else
+            {
+                randomNumber = rand.Next(0, 20);
+                randChars[i] = possibleConsonants[randomNumber];
+            }
+        }
+
+        return randChars;
+    }
+
     private static List<BoggleKey> constructKeypad(char[] chars)
     {
         List<BoggleKey> keys = new List<BoggleKey>();
@@ -179,25 +236,37 @@
         //TODO: use ClickedLetters for calculation, modify total points, show how many points were scored.
         if (IfWord())
         {
-            if (ClickedLetters.Length <= 4)
+            if (ClickedLetters.Length == 3)
             {
                 totalPoints += 1;
             }
-            else if (ClickedLetters.Length == 5)
+            else if (ClickedLetters.Length == 4)
             {
                 totalPoints += 2;
             }
+            else if (ClickedLetters.Length == 5)
+            {
+                totalPoints += 4;
+            }
             else if (ClickedLetters.Length == 6)
             {
-                totalPoints += 3;
+                totalPoints += 6;
             }
             else if (ClickedLetters.Length == 7)
             {
-                totalPoints += 5;
+                totalPoints += 8;
+            }
+            else if (ClickedLetters.Length == 8)
+            {
+                totalPoints += 10;
+            }
+            else if (ClickedLetters.Length > 8)
+            {
+                totalPoints += 15;
             }
             else
             {
-                totalPoints += 11;
+                totalPoints += 0;
             }
         }
     }
@@ -210,6 +279,24 @@
         ClickedLetters = "";
         sender = -1;
     }
+
+    //protected override async Task OnInitializedAsync()
+    //{
+    //    hubConnection = new HubConnectionBuilder()
+    //    .WithUrl(navManager.ToAbsoluteUri("/pointhub"))
+    //    .WithAutomaticReconnect
+    //    .build();
+
+    //    HubConnection.On<string, string>("RecieveMessage", (userInput, messageInput) =>
+    //    {
+    //        var formattedMessage = $"{user}: {message}";
+    //        messages.Add(formattedMessage);
+    //        InvokeAsync(StateHasChanged);
+    //    });
+
+    //    await hubConnection.StartAsync();
+    //}
+}
 
     public static void startTimer()
     {
