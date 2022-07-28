@@ -107,13 +107,37 @@
     {
         var rand = new Random();
         int randomNumber;
-        char[] possibleChars = new char[] { 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z' };
+        int count = 0;
+        char[] possibleConsonants = new char[] { 'B', 'C', 'D',
+                                                 'F', 'G', 'H',
+                                                 'J', 'K', 'L',
+                                                 'M', 'N', 'P',
+                                                 'Q', 'R', 'S',
+                                                 'T', 'V', 'W',
+                                                 'X', 'Y', 'Z' };
+        char[] possibleVowels = new char[] { 'A', 'E', 'I', 'O', 'U' };
         char[] randChars = new char[16];
+        int[] vowelPositions = new int[5];
+
+        for(int i = 0; i < 13; i += 3)
+        {
+            randomNumber = rand.Next(i, i + 2);
+            vowelPositions[count] = randomNumber;
+            count++;
+        }
 
         for (int i = 0; i < 16; i++)
         {
-            randomNumber = rand.Next(0, 25);
-            randChars[i] = possibleChars[randomNumber];
+            if (vowelPositions.Contains(i))
+            {
+                randomNumber = rand.Next(0, 4);
+                randChars[i] = possibleVowels[randomNumber];
+            }
+            else
+            {
+                randomNumber = rand.Next(0, 20);
+                randChars[i] = possibleConsonants[randomNumber];
+            }
         }
 
         return randChars;
@@ -235,6 +259,7 @@
         ClickedLetters = "";
         sender = -1;
     }
+
     //protected override async Task OnInitializedAsync()
     //{
     //    hubConnection = new HubConnectionBuilder()
