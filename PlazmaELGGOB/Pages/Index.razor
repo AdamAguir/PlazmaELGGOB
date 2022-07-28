@@ -1,6 +1,8 @@
 ﻿@page "/"
-@using PlazmaELGGOB.Moddel;
-
+@using PlazmaELGGOB.Model;
+@*@using Microsoft.AspNetCore.SignalR.Client
+@inject NavigationManager navManager
+@implements IAsyncDisposable*@
 <style>
     .keyButton {
         width: 80px;
@@ -73,6 +75,7 @@
             }
         </div>
         <div class="col-3 float-end">
+            
         </div>
     </div>
 </body>
@@ -84,6 +87,13 @@
     private static string ClickedLetters = "";
     private static int sender = -1;
     private static int totalPoints = 0;
+    //private HubConnection? hubConnection;
+    private List<string> messages = new();
+    private string? userInput;
+    private string? messageInput;
+    private DisplayPointMessage player = new DisplayPointMessage();
+    private DisplayPointMessage opponet = new DisplayPointMessage();
+    private GameHistory history = new GameHistory();
     /// <summary>
     /// Please pass in a random char array for the letters.
     /// This function is polite enough to do the rest and return
@@ -225,4 +235,20 @@
         ClickedLetters = "";
         sender = -1;
     }
+    //protected override async Task OnInitializedAsync()
+    //{
+    //    hubConnection = new HubConnectionBuilder()
+    //    .WithUrl(navManager.ToAbsoluteUri("/pointhub"))
+    //    .WithAutomaticReconnect
+    //    .build();
+
+    //    HubConnection.On<string, string>("RecieveMessage", (userInput, messageInput) =>
+    //    {
+    //        var formattedMessage = $"{user}: {message}";
+    //        messages.Add(formattedMessage);
+    //        InvokeAsync(StateHasChanged);
+    //    });
+
+    //    await hubConnection.StartAsync();
+    //}
 }
