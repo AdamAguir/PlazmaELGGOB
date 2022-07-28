@@ -79,7 +79,7 @@
 
 @code {
     //use all uppercase characters to make it easier to read.
-    private static char[] chars = new char[] { 'A', 'T', 'L', 'U', 'N', 'P', 'P', 'L', 'I', 'C', 'K', 'E', 'T', 'O', 'D', 'J' };
+    private static char[] chars = generateRandomArray();
     private static List<BoggleKey> KeyPad = constructKeypad(chars);
     private static string ClickedLetters = "";
     private static int sender = -1;
@@ -92,6 +92,23 @@
     /// </summary>
     /// <param name="chars"></param>
     /// <returns></returns>
+
+    private static char[] generateRandomArray()
+    {
+        var rand = new Random();
+        int randomNumber;
+        char[] possibleChars = new char[] { 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z' };
+        char[] randChars = new char[16];
+
+        for (int i = 0; i < 16; i++)
+        {
+            randomNumber = rand.Next(0, 25);
+            randChars[i] = possibleChars[randomNumber];
+        }
+
+        return randChars;
+    }
+
     private static List<BoggleKey> constructKeypad(char[] chars)
     {
         List<BoggleKey> keys = new List<BoggleKey>();
