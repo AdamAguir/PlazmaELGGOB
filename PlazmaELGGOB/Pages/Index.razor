@@ -1,6 +1,12 @@
 ﻿@page "/"
+@using PlazmaELGGOB.Moddel;
+@using System;
+@using System.Timers;
+
 @using PlazmaELGGOB.Model;
 @*@using Microsoft.AspNetCore.SignalR.Client
+@inject NavigationManager navManager
+@implements IAsyncDisposable*@
 @inject NavigationManager navManager
 @implements IAsyncDisposable*@
 <style>
@@ -45,7 +51,17 @@
 
 <body>
     <div class="container">
-        <div class="col-3 float-start">
+        <div class="col-2 float-start">
+                <div class="row">
+                    Please enter username:<input id="username" />
+                </div>
+                <div class="col-1">
+                    <button type="button" class="usernameSubmitBtn btn-primary" @onclick="@(() => startTimer())">Submit</button>
+                </div>
+                <div class="row">
+                    <h2>Timer @timeRemaning</h2>
+                </div>
+
             <div class="row">
                 <h1>@ClickedLetters</h1>
             </div>
@@ -81,7 +97,7 @@
 
 @code {
     //use all uppercase characters to make it easier to read.
-    private static char[] chars = new char[] { 'A', 'T', 'L', 'U', 'N', 'P', 'P', 'L', 'I', 'C', 'K', 'E', 'T', 'O', 'D', 'J' };
+    private static char[] chars = generateRandomArray();
     private static List<BoggleKey> KeyPad = constructKeypad(chars);
     private static string ClickedLetters = "";
     private static int sender = -1;
@@ -100,6 +116,47 @@
     /// </summary>
     /// <param name="chars"></param>
     /// <returns></returns>
+
+    private static char[] generateRandomArray()
+    {
+        var rand = new Random();
+        int randomNumber;
+        int count = 0;
+        char[] possibleConsonants = new char[] { 'B', 'C', 'D',
+                                                 'F', 'G', 'H',
+                                                 'J', 'K', 'L',
+                                                 'M', 'N', 'P',
+                                                 'Q', 'R', 'S',
+                                                 'T', 'V', 'W',
+                                                 'X', 'Y', 'Z' };
+        char[] possibleVowels = new char[] { 'A', 'E', 'I', 'O', 'U' };
+        char[] randChars = new char[16];
+        int[] vowelPositions = new int[5];
+
+        for(int i = 0; i < 13; i += 3)
+        {
+            randomNumber = rand.Next(i, i + 2);
+            vowelPositions[count] = randomNumber;
+            count++;
+        }
+
+        for (int i = 0; i < 16; i++)
+        {
+            if (vowelPositions.Contains(i))
+            {
+                randomNumber = rand.Next(0, 4);
+                randChars[i] = possibleVowels[randomNumber];
+            }
+            else
+            {
+                randomNumber = rand.Next(0, 20);
+                randChars[i] = possibleConsonants[randomNumber];
+            }
+        }
+
+        return randChars;
+    }
+
     private static List<BoggleKey> constructKeypad(char[] chars)
     {
         List<BoggleKey> keys = new List<BoggleKey>();
@@ -205,6 +262,7 @@
         ClickedLetters = "";
         sender = -1;
     }
+
     //protected override async Task OnInitializedAsync()
     //{
     //    hubConnection = new HubConnectionBuilder()
@@ -221,4 +279,20 @@
 
     //    await hubConnection.StartAsync();
     //}
+}
+
+    public static void startTimer()
+    {
+        timeRemaning = 60;
+        //create timer at 1 second interval
+        aTimer = new System.Timers.Timer(1000);
+        aTimer.Elapsed += OnTimedEvent;
+        aTimer.AutoReset = true;
+        aTimer.Enabled = true;
+    }
+
+    private static void OnTimedEvent(Object source, ElapsedEventArgs e)
+    {
+        timeRemaning -= 1;
+    }
 }
