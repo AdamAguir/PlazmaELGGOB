@@ -1,6 +1,12 @@
 ﻿@page "/"
+@using PlazmaELGGOB.Moddel;
+@using System;
+@using System.Timers;
+
 @using PlazmaELGGOB.Model;
 @*@using Microsoft.AspNetCore.SignalR.Client
+@inject NavigationManager navManager
+@implements IAsyncDisposable*@
 @inject NavigationManager navManager
 @implements IAsyncDisposable*@
 <style>
@@ -45,7 +51,17 @@
 
 <body>
     <div class="container">
-        <div class="col-3 float-start">
+        <div class="col-2 float-start">
+                <div class="row">
+                    Please enter username:<input id="username" />
+                </div>
+                <div class="col-1">
+                    <button type="button" class="usernameSubmitBtn btn-primary" @onclick="@(() => startTimer())">Submit</button>
+                </div>
+                <div class="row">
+                    <h2>Timer @timeRemaning</h2>
+                </div>
+
             <div class="row">
                 <h1>@ClickedLetters</h1>
             </div>
@@ -94,6 +110,10 @@
     private DisplayPointMessage player = new DisplayPointMessage();
     private DisplayPointMessage opponet = new DisplayPointMessage();
     private GameHistory history = new GameHistory();
+    private static Timer aTimer;
+    private static int timeRemaning;
+    private static Timer aTimer;
+    private static int timeRemaning;
     /// <summary>
     /// Please pass in a random char array for the letters.
     /// This function is polite enough to do the rest and return
@@ -276,4 +296,20 @@
 
     //    await hubConnection.StartAsync();
     //}
+}
+
+    public static void startTimer()
+    {
+        timeRemaning = 60;
+        //create timer at 1 second interval
+        aTimer = new System.Timers.Timer(1000);
+        aTimer.Elapsed += OnTimedEvent;
+        aTimer.AutoReset = true;
+        aTimer.Enabled = true;
+    }
+
+    private static void OnTimedEvent(Object source, ElapsedEventArgs e)
+    {
+        timeRemaning -= 1;
+    }
 }
