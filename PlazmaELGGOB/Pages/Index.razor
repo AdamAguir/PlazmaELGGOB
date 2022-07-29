@@ -1,14 +1,17 @@
 ﻿@page "/"
-@using PlazmaELGGOB.Moddel;
+@using PlazmaELGGOB.Model;
 @using System;
 @using System.Timers;
 
-@using PlazmaELGGOB.Model;
+@using System.Text.Json
+@using System.Text.Json.Serialization;
+@using System.Net;
+
+
 @*@using Microsoft.AspNetCore.SignalR.Client
 @inject NavigationManager navManager
 @implements IAsyncDisposable*@
 @inject NavigationManager navManager
-@implements IAsyncDisposable*@
 <style>
     .keyButton {
         width: 80px;
@@ -95,6 +98,8 @@
     </div>
 </body>
 
+
+
 @code {
     //use all uppercase characters to make it easier to read.
     private static char[] chars = generateRandomArray();
@@ -108,6 +113,13 @@
     private static DisplayPointMessage player = new DisplayPointMessage(0, "", 0);
     private static DisplayPointMessage opponet = new DisplayPointMessage(0, "", 0);
     private static GameHistory history = new GameHistory("player1", 0, new Dictionary<string, int>());
+
+    //boolean that is updated in the IfWord() function to tell if the inputed word is valid or not
+    private static bool isRealWord;
+
+
+
+
     /// <summary>
     /// Please pass in a random char array for the letters.
     /// This function is polite enough to do the rest and return
@@ -116,6 +128,8 @@
     /// </summary>
     /// <param name="chars"></param>
     /// <returns></returns>
+
+
 
     private static char[] generateRandomArray()
     {
@@ -157,6 +171,7 @@
         return randChars;
     }
 
+
     private static List<BoggleKey> constructKeypad(char[] chars)
     {
         List<BoggleKey> keys = new List<BoggleKey>();
@@ -181,6 +196,7 @@
         return keys;
     }
 
+
     public static void KeyPadClick(int key)
     {
         if (sender == -1 || CheckMoveList(key))
@@ -200,7 +216,8 @@
         {
             if (key == sender)
             {
-                if (IfWord())
+                IfWord();
+                if (isRealWord)
                 {
                     player = new DisplayPointMessage(CalcPoints(), "You scored ", 3);
                     history.TotalPoints += player.Points;
@@ -210,6 +227,8 @@
         }
 
     }
+
+
     public static bool CheckMoveList(int key)
     {
         foreach (int move in KeyPad[key].allowedIndexes)
@@ -221,12 +240,44 @@
         }
         return false;
     }
-    public static bool IfWord()
-    {
-        //TODO: use ClickedLetters
 
-        return true;
+
+    /// <summary>
+    /// function that sets the isRealWord variable to true or false depending on if the inputed word is found in the api or not.
+    /// </summary>
+    public static void IfWord()
+    {
+        GetRequestAsync();
+
+        async Task<HttpResponseMessage> GetRequestAsync()
+        {
+            try
+            {
+                using (HttpClient client = new HttpClient())
+                {
+                    HttpResponseMessage response = await client.GetAsync("https://api.dictionaryapi.dev/api/v2/entries/en/" + ClickedLetters);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        isRealWord = true;
+                    }
+                    else
+                    {
+                        isRealWord = false;
+                    }
+
+                    return response;
+                }
+            }
+            catch (Exception e)
+            {
+                throw e;
+            }
+        }
     }
+
+
+
     public static int CalcPoints()
     {
         //TODO: use ClickedLetters for calculation, modify total points, show how many points were scored.
@@ -268,7 +319,7 @@
     //    hubConnection = new HubConnectionBuilder()
     //    .WithUrl(navManager.ToAbsoluteUri("/pointhub"))
     //    .WithAutomaticReconnect
-        //    .build();
+    //    .build();
 
     //    HubConnection.On<string, string>("RecieveMessage", (userInput, messageInput) =>
     //    {
@@ -279,6 +330,7 @@
 
     //    await hubConnection.StartAsync();
     //}
+
 }
 
     public static void startTimer()
