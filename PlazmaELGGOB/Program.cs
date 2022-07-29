@@ -14,12 +14,12 @@ builder.Services.AddSingleton<WeatherForecastService>();
 //for api
 builder.Services.AddHttpClient();
 
-/*builder.Services.AddResponseCompression(opts =>
+builder.Services.AddResponseCompression(opts =>
 {
     opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(
         new[] { "application/octet-stream" });
 });
-*/
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -37,7 +37,7 @@ app.UseStaticFiles();
 app.UseRouting();
 
 app.MapBlazorHub();
-/*app.MapHub<PointHub>("/pointhub");*/
+app.MapHub<PointHub>("/pointhub");
 app.MapFallbackToPage("/_Host");
 
 app.Run();

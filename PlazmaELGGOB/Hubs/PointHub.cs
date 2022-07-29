@@ -1,11 +1,13 @@
 ﻿using Microsoft.AspNetCore.SignalR;
+using PlazmaELGGOB.Model;
+
 namespace PlazmaELGGOB.Hubs
 {
     public class PointHub : Hub
     {
-        public Task SendMessage(string user, string message)
+        public Task SendMessage(string user, string points)
         {
-            return Clients.All.SendAsync("receiveMessage", user, message);
+            return Clients.All.SendAsync("RecieveMessage", user, points);
         }
     }
 }
