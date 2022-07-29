@@ -1,4 +1,5 @@
 ﻿@page "/"
+@using Microsoft.AspNetCore.SignalR.Client
 @using PlazmaELGGOB.Model;
 @using System;
 @using System.Timers;
@@ -8,10 +9,9 @@
 @using System.Net;
 
 
-@*@using Microsoft.AspNetCore.SignalR.Client
+@implements IAsyncDisposable
 @inject NavigationManager navManager
-@implements IAsyncDisposable*@
-@inject NavigationManager navManager
+
 <style>
     .keyButton {
         width: 80px;
@@ -55,16 +55,21 @@
 <body>
     <div class="container">
         <div class="col-2 float-start">
-                <div class="row">
-                    Please enter username:<input id="username" />
-                </div>
-                <div class="col-1">
-                    <button type="button" class="usernameSubmitBtn btn-primary" @onclick="@(() => startTimer())">Submit</button>
-                </div>
-                <div class="row">
-                    <h2>Timer @timeRemaning</h2>
-                </div>
-
+            <div class="row">
+                Please enter username:<input id="username" @bind="history.User" class="form-control" />
+            </div>
+            <div class="col-1">
+                @if (IsConnected)
+                {
+                    <p>This is where the fun begins.</p>
+                }
+                else
+                {
+                    <p>All Batteries Fire!</p>
+                }
+            </div>
+            <div class="row">
+            </div>
             <div class="row">
                 <h1>@ClickedLetters</h1>
             </div>
@@ -74,26 +79,42 @@
         </div>
         <div class="col-6 mx-auto">
             @*here are the keypad buttons*@
-
-            @for (int i = 0; i < 4; i++)
+            @if (history.User == "" && IsConnected)
             {
                 <div class="row">
-                    @for (int j = 0; j < 4; j++)
-                    {
-                        int slot = (4 * i) + j;
-                        @if (!KeyPad[slot].Clicked)
-                        {
-                            <div class="keyButton m-1" @onclick="@(() => KeyPadClick(slot))">@KeyPad[slot].Letter</div>
-                        }
-                        else
-                        {
-                            <div class="keyButton_clicked m-1" @onclick="@(() => KeyPadClick(slot))">@KeyPad[slot].Letter</div>
-                        }
-                    }
+                    <div class="col">
+                        <h1>Please Enter a Username to start the Game.</h1>
+                    </div>
                 </div>
+            }
+            else
+            {
+                @for (int i = 0; i < 4; i++)
+                {
+                    <div class="row">
+                        @for (int j = 0; j < 4; j++)
+                        {
+                            int slot = (4 * i) + j;
+                            @if (!KeyPad[slot].Clicked)
+                            {
+                                <div class="keyButton m-1" @onclick="@(() => KeyPadClick(slot))">@KeyPad[slot].Letter</div>
+                            }
+                            else
+                            {
+                                <div class="keyButton_clicked m-1" @onclick="@(() => KeyPadClick(slot))">@KeyPad[slot].Letter</div>
+                            }
+                        }
+                    </div>
+                }
             }
         </div>
         <div class="col-3 float-end">
+            @foreach (string message in messeges)
+            {
+                <div class="row">
+                    @message
+                </div>
+            }
         </div>
     </div>
 </body>
@@ -101,21 +122,34 @@
 
 
 @code {
+
+
+    //<button type="button" class="usernameSubmitBtn btn-primary" @onclick="@(() => startTimer())">Submit</button>
+    //<h2>Timer @timeRemaning</h2>
+
     //use all uppercase characters to make it easier to read.
     private static char[] chars = generateRandomArray();
-    private static List<BoggleKey> KeyPad = constructKeypad(chars);
-    private static string ClickedLetters = "";
-    private static int sender = -1;
-    //private HubConnection? hubConnection;
-    private List<string> messages = new();
-    private string? userInput;
-    private string? messageInput;
-    private static DisplayPointMessage player = new DisplayPointMessage(0, "", 0);
-    private static DisplayPointMessage opponet = new DisplayPointMessage(0, "", 0);
-    private static GameHistory history = new GameHistory("player1", 0, new Dictionary<string, int>());
+    private List<BoggleKey> KeyPad = constructKeypad(chars);
+    private string ClickedLetters = "";
+    private int sender = -1;
+    private HubConnection? hubConnection;
+    //private List<DisplayPointMessage> displayMessages = new List<DisplayPointMessage>();
+    private List<string> messeges = new List<string>();
+    private GameHistory history = new GameHistory("", 0, new Dictionary<string, int>());
+
+    public bool IsConnected => hubConnection?.State == HubConnectionState.Connected;
+    public async ValueTask DisposeAsync()
+    {
+        if (hubConnection is not null)
+        {
+            await hubConnection.DisposeAsync();
+        }
+    }
+
+    private int timeRemaning = 0;
 
     //boolean that is updated in the IfWord() function to tell if the inputed word is valid or not
-    private static bool isRealWord;
+    private bool isRealWord;
 
 
 
@@ -147,7 +181,7 @@
         char[] randChars = new char[16];
         int[] vowelPositions = new int[5];
 
-        for(int i = 0; i < 13; i += 3)
+        for (int i = 0; i < 13; i += 3)
         {
             randomNumber = rand.Next(i, i + 2);
             vowelPositions[count] = randomNumber;
@@ -197,7 +231,7 @@
     }
 
 
-    public static void KeyPadClick(int key)
+    public async void KeyPadClick(int key)
     {
         if (sender == -1 || CheckMoveList(key))
         {
@@ -219,8 +253,12 @@
                 IfWord();
                 if (isRealWord)
                 {
-                    player = new DisplayPointMessage(CalcPoints(), "You scored ", 3);
-                    history.TotalPoints += player.Points;
+                    int points = CalcPoints();
+                    DisplayPointMessage newMessage = new DisplayPointMessage(points, history.User + " scored " + points, 3);
+                    //displayMessages.Add();
+                    history.TotalPoints += points;
+                    //ResetKeyPad();
+                    await Send(history.User, points.ToString());
                 }
             }
             ResetKeyPad();
@@ -229,7 +267,7 @@
     }
 
 
-    public static bool CheckMoveList(int key)
+    public bool CheckMoveList(int key)
     {
         foreach (int move in KeyPad[key].allowedIndexes)
         {
@@ -245,7 +283,7 @@
     /// <summary>
     /// function that sets the isRealWord variable to true or false depending on if the inputed word is found in the api or not.
     /// </summary>
-    public static void IfWord()
+    public void IfWord()
     {
         GetRequestAsync();
 
@@ -278,7 +316,7 @@
 
 
 
-    public static int CalcPoints()
+    public int CalcPoints()
     {
         //TODO: use ClickedLetters for calculation, modify total points, show how many points were scored.
 
@@ -304,7 +342,7 @@
         }
 
     }
-    public static void ResetKeyPad()
+    public void ResetKeyPad()
     {
         foreach (BoggleKey key in KeyPad)
         {
@@ -314,37 +352,46 @@
         sender = -1;
     }
 
-    //protected override async Task OnInitializedAsync()
+    protected override async Task OnInitializedAsync()
+    {
+
+        hubConnection = new HubConnectionBuilder()
+        .WithUrl(navManager.ToAbsoluteUri("/pointhub"))
+        .WithAutomaticReconnect()
+        .Build();
+
+        // this is where we capture data coming back.
+        hubConnection.On<string, string>("RecieveMessage", (user, points) =>
+        {
+            var formattedMessage = $"{user} scored {points} points!";
+            messeges.Add(formattedMessage);
+            InvokeAsync(StateHasChanged);
+        });
+
+        await hubConnection.StartAsync();
+    }
+
+    private async Task Send(string user, string points)
+    {
+        if (hubConnection is not null)
+        {
+            await hubConnection.SendAsync("SendMessage", user, points);
+        }
+    }
+
+    //public static void startTimer()
     //{
-    //    hubConnection = new HubConnectionBuilder()
-    //    .WithUrl(navManager.ToAbsoluteUri("/pointhub"))
-    //    .WithAutomaticReconnect
-    //    .build();
-
-    //    HubConnection.On<string, string>("RecieveMessage", (userInput, messageInput) =>
-    //    {
-    //        var formattedMessage = $"{user}: {message}";
-    //        messages.Add(formattedMessage);
-    //        InvokeAsync(StateHasChanged);
-    //    });
-
-    //    await hubConnection.StartAsync();
+    //    timeRemaning = 60;
+    //    //create timer at 1 second interval
+    //    aTimer = new System.Timers.Timer(1000);
+    //    aTimer.Elapsed += OnTimedEvent;
+    //    aTimer.AutoReset = true;
+    //    aTimer.Enabled = true;
     //}
 
+    //private static void OnTimedEvent(Object source, ElapsedEventArgs e)
+    //{
+    //    timeRemaning -= 1;
+    //}
 }
 
-    public static void startTimer()
-    {
-        timeRemaning = 60;
-        //create timer at 1 second interval
-        aTimer = new System.Timers.Timer(1000);
-        aTimer.Elapsed += OnTimedEvent;
-        aTimer.AutoReset = true;
-        aTimer.Enabled = true;
-    }
-
-    private static void OnTimedEvent(Object source, ElapsedEventArgs e)
-    {
-        timeRemaning -= 1;
-    }
-}
