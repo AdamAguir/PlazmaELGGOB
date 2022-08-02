@@ -176,8 +176,7 @@
     {
         var rand = new Random();
         int randomNumber;
-        int count = 0;
-        char[] possibleConsonants = new char[] { 'B', 'C', 'D',
+        char[] Consonants = new char[] { 'B', 'C', 'D',
                                                  'F', 'G', 'H',
                                                  'J', 'K', 'L',
                                                  'M', 'N', 'P',
@@ -186,18 +185,11 @@
                                                  'X', 'Y', 'Z' };
         char[] possibleVowels = new char[] { 'A', 'E', 'I', 'O', 'U' };
         char[] randChars = new char[16];
-        int[] vowelPositions = new int[5];
-
-        for (int i = 0; i < 13; i += 3)
-        {
-            randomNumber = rand.Next(i, i + 2);
-            vowelPositions[count] = randomNumber;
-            count++;
-        }
 
         for (int i = 0; i < 16; i++)
         {
-            if (vowelPositions.Contains(i))
+            randomNumber = rand.Next(0, 99);
+            if (randomNumber < 40)
             {
                 randomNumber = rand.Next(0, 4);
                 randChars[i] = possibleVowels[randomNumber];
@@ -205,7 +197,7 @@
             else
             {
                 randomNumber = rand.Next(0, 20);
-                randChars[i] = possibleConsonants[randomNumber];
+                randChars[i] = Consonants[randomNumber];
             }
         }
 
