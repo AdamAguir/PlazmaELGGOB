@@ -58,6 +58,9 @@
             <div class="row">
                 Please enter username:<input id="username" @bind="history.User" class="form-control" />
             </div>
+            <div>
+                <button type="button" class="btn btn-success" @onclick="@(() => StartTimer())">Ready Up</button>
+            </div>
             <div class="col-1">
                 @if (IsConnected)
                 {
@@ -69,6 +72,8 @@
                 }
             </div>
             <div class="row">
+                <h3>Time Remaining:</h3>
+                <p>@timeRemaning</p>
             </div>
             <div class="row">
                 <h1>@ClickedLetters</h1>
@@ -135,6 +140,8 @@
     private string ClickedLetters = "";
     private int sender = -1;
     private HubConnection? hubConnection;
+    private Timer aTimer;
+    private int timeRemaning = 60;
     //private List<DisplayPointMessage> displayMessages = new List<DisplayPointMessage>();
     private List<string> messeges = new List<string>();
 
@@ -154,7 +161,7 @@
         }
     }
 
-    private int timeRemaning = 0;
+
 
     //boolean that is updated in the IfWord() function to tell if the inputed word is valid or not
     private bool isRealWord;
@@ -174,8 +181,7 @@
     {
         var rand = new Random();
         int randomNumber;
-        int count = 0;
-        char[] possibleConsonants = new char[] { 'B', 'C', 'D',
+        char[] Consonants = new char[] { 'B', 'C', 'D',
                                                  'F', 'G', 'H',
                                                  'J', 'K', 'L',
                                                  'M', 'N', 'P',
@@ -184,18 +190,11 @@
                                                  'X', 'Y', 'Z' };
         char[] possibleVowels = new char[] { 'A', 'E', 'I', 'O', 'U' };
         char[] randChars = new char[16];
-        int[] vowelPositions = new int[5];
-
-        for (int i = 0; i < 13; i += 3)
-        {
-            randomNumber = rand.Next(i, i + 2);
-            vowelPositions[count] = randomNumber;
-            count++;
-        }
 
         for (int i = 0; i < 16; i++)
         {
-            if (vowelPositions.Contains(i))
+            randomNumber = rand.Next(0, 99);
+            if (randomNumber < 40)
             {
                 randomNumber = rand.Next(0, 4);
                 randChars[i] = possibleVowels[randomNumber];
@@ -203,7 +202,7 @@
             else
             {
                 randomNumber = rand.Next(0, 20);
-                randChars[i] = possibleConsonants[randomNumber];
+                randChars[i] = Consonants[randomNumber];
             }
         }
 
@@ -400,6 +399,12 @@
             InvokeAsync(StateHasChanged);
         });
 
+        // this is the timer hub
+        hubConnection.On<int>("UpdateTimer", (timeRemaning) =>
+        {
+
+        });
+
         await hubConnection.StartAsync();
     }
 
@@ -411,19 +416,38 @@
         }
     }
 
-    //public static void startTimer()
-    //{
-    //    timeRemaning = 60;
-    //    //create timer at 1 second interval
-    //    aTimer = new System.Timers.Timer(1000);
-    //    aTimer.Elapsed += OnTimedEvent;
-    //    aTimer.AutoReset = true;
-    //    aTimer.Enabled = true;
-    //}
+    public void StartTimer()
+    {
+        if(history.User != ""){
+            timeRemaning = 60;
+            //create timer at 1 second interval
+            if(aTimer == null){
+                aTimer = new System.Timers.Timer(1000);
+            }
+            else
+            {
+                aTimer.Stop();
+                aTimer = new System.Timers.Timer(1000);
+            }
+            aTimer.Elapsed += OnTimedEvent;
+            aTimer.AutoReset = true;
+            aTimer.Enabled = true;
+        }
+    }
 
-    //private static void OnTimedEvent(Object source, ElapsedEventArgs e)
-    //{
-    //    timeRemaning -= 1;
-    //}
+    private void OnTimedEvent(Object source, ElapsedEventArgs e)
+    {
+        if(timeRemaning > 0)
+        {
+            timeRemaning -= 1;
+        }
+        else
+        {
+            aTimer.Enabled = false;
+            aTimer.Stop();
+        }
+        InvokeAsync(StateHasChanged);
+
+    }
 }
 
