@@ -250,7 +250,7 @@
         {
             if (key == sender)
             {
-                IfWord();
+                await GetRequestAsync();
                 if (isRealWord)
                 {
                     int points = CalcPoints();
@@ -280,37 +280,37 @@
     }
 
 
+
+
+
+
+
     /// <summary>
     /// function that sets the isRealWord variable to true or false depending on if the inputed word is found in the api or not.
     /// </summary>
-    public void IfWord()
+    async Task<HttpResponseMessage> GetRequestAsync()
     {
-        GetRequestAsync();
-
-        async Task<HttpResponseMessage> GetRequestAsync()
+        try
         {
-            try
+            using (HttpClient client = new HttpClient())
             {
-                using (HttpClient client = new HttpClient())
+                HttpResponseMessage response = await client.GetAsync("https://api.dictionaryapi.dev/api/v2/entries/en/" + ClickedLetters);
+
+                if (response.IsSuccessStatusCode)
                 {
-                    HttpResponseMessage response = await client.GetAsync("https://api.dictionaryapi.dev/api/v2/entries/en/" + ClickedLetters);
-
-                    if (response.IsSuccessStatusCode)
-                    {
-                        isRealWord = true;
-                    }
-                    else
-                    {
-                        isRealWord = false;
-                    }
-
-                    return response;
+                    isRealWord = true;
                 }
+                else
+                {
+                    isRealWord = false;
+                }
+
+                return response;
             }
-            catch (Exception e)
-            {
-                throw e;
-            }
+        }
+        catch (Exception e)
+        {
+            throw e;
         }
     }
 
