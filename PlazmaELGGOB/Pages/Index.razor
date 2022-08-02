@@ -140,6 +140,7 @@
     private HubConnection? hubConnection;
     private Timer aTimer;
     private int timeRemaning = 60;
+    private int userCount = 0;
     //private List<DisplayPointMessage> displayMessages = new List<DisplayPointMessage>();
     private List<string> messeges = new List<string>();
     private GameHistory history = new GameHistory("", 0, new Dictionary<string, int>());
@@ -417,6 +418,7 @@
 
     private void OnTimedEvent(Object source, ElapsedEventArgs e)
     {
+
         if(timeRemaning > 0)
         {
             timeRemaning -= 1;
