@@ -59,7 +59,7 @@
                 Please enter username:<input id="username" @bind="history.User" class="form-control" />
             </div>
             <div>
-                <button type="button" class="btn btn-success" @onclick="@(() => StartTimer())">Ready Up</button>
+                <button type="button" class="btn btn-success" @onclick="@(() => StartTimer())">Start</button>
             </div>
             <div class="col-1">
                 @if (IsConnected)
@@ -142,6 +142,7 @@
     private HubConnection? hubConnection;
     private Timer aTimer;
     private int timeRemaning = 60;
+    private int userCount = 0;
     //private List<DisplayPointMessage> displayMessages = new List<DisplayPointMessage>();
     private List<string> messeges = new List<string>();
 
@@ -405,6 +406,12 @@
 
         });
 
+        // start timer
+        hubConnection.On ("StartTimer",() =>
+    {
+            
+        });
+
         await hubConnection.StartAsync();
     }
 
@@ -437,6 +444,7 @@
 
     private void OnTimedEvent(Object source, ElapsedEventArgs e)
     {
+
         if(timeRemaning > 0)
         {
             timeRemaning -= 1;
