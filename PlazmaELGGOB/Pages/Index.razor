@@ -113,7 +113,9 @@
                 }
             }
         </div>
+        
         <div class="col-3 float-end">
+            @ErrorMessage
             @foreach (string message in messeges)
             {
                 <div class="row">
@@ -143,7 +145,13 @@
     private int userCount = 0;
     //private List<DisplayPointMessage> displayMessages = new List<DisplayPointMessage>();
     private List<string> messeges = new List<string>();
+
+
     private GameHistory history = new GameHistory("", 0, new Dictionary<string, int>());
+
+    private List<string> GuessedWords = new List<string>();
+
+    private string ErrorMessage;
 
     public bool IsConnected => hubConnection?.State == HubConnectionState.Connected;
     public async ValueTask DisposeAsync()
@@ -170,9 +178,6 @@
     /// </summary>
     /// <param name="chars"></param>
     /// <returns></returns>
-
-
-
     private static char[] generateRandomArray()
     {
         var rand = new Random();
@@ -250,18 +255,32 @@
         {
             if (key == sender)
             {
-                await GetRequestAsync();
-                if (isRealWord)
+                if (GuessedWords.Contains(ClickedLetters) || ClickedLetters.Length < 3)
                 {
-                    int points = CalcPoints();
-                    DisplayPointMessage newMessage = new DisplayPointMessage(points, history.User + " scored " + points, 3);
-                    //displayMessages.Add();
-                    history.TotalPoints += points;
-                    //ResetKeyPad();
-                    await Send(history.User, points.ToString());
+                    //error, you have already guessed that word
+                    ErrorMessage = "You have already guessed that word or it is too short";
+                }
+                else
+                {
+                    await CheckWord();
+                    if (isRealWord)
+                    {
+                        ErrorMessage = "";
+                        int points = CalcPoints();
+                        DisplayPointMessage newMessage = new DisplayPointMessage(points, history.User + " scored " + points, 3);
+                        //displayMessages.Add();
+                        history.TotalPoints += points;
+                        //ResetKeyPad();
+                        await Send(history.User, points.ToString());
+                    }
+                    else
+                    {
+                        ErrorMessage = "That is not a real word";
+                    }
                 }
             }
             ResetKeyPad();
+            InvokeAsync(StateHasChanged);
         }
 
     }
@@ -288,7 +307,7 @@
     /// <summary>
     /// function that sets the isRealWord variable to true or false depending on if the inputed word is found in the api or not.
     /// </summary>
-    async Task<HttpResponseMessage> GetRequestAsync()
+    async Task<HttpResponseMessage> CheckWord()
     {
         try
         {
@@ -299,6 +318,7 @@
                 if (response.IsSuccessStatusCode)
                 {
                     isRealWord = true;
+                    GuessedWords.Add(ClickedLetters);
                 }
                 else
                 {
