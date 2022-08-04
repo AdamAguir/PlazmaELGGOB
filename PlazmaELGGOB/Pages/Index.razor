@@ -59,7 +59,7 @@
                 Please enter username:<input id="username" @bind="history.User" class="form-control" />
             </div>
             <div>
-                <button type="button" class="btn btn-success" @onclick="@(() => StartTimer())">Ready Up</button>
+                <button type="button" class="btn btn-success" @onclick="@(() => StartTimer())">Start</button>
             </div>
             <div class="col-1">
                 @if (IsConnected)
@@ -404,6 +404,12 @@
         hubConnection.On<int>("UpdateTimer", (timeRemaning) =>
         {
 
+        });
+
+        // start timer
+        hubConnection.On ("StartTimer",() =>
+    {
+            
         });
 
         await hubConnection.StartAsync();
