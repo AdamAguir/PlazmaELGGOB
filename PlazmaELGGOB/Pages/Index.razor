@@ -408,8 +408,11 @@
 
         // start timer
         hubConnection.On ("StartTimer",() =>
-    {
-            
+        {       
+            if(aTimer == null)
+            {
+                StartTimer();
+            }
         });
 
         await hubConnection.StartAsync();
@@ -423,9 +426,18 @@
         }
     }
 
-    public void StartTimer()
+    private async Task TimerCheck()
+    {
+        if(hubConnection is not null)
+        {
+            await hubConnection.SendAsync("TimerCheck");
+        }
+    }
+
+    public async void StartTimer()
     {
         if(history.User != ""){
+            await TimerCheck();
             timeRemaning = 60;
             //create timer at 1 second interval
             if(aTimer == null){
