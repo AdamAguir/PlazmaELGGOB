@@ -53,77 +53,103 @@
 <h1 class="text-center">Plazma Elggob</h1>
 
 <body>
-    <div class="container">
-        <div class="col-2 float-start">
-            <div class="row">
-                Please enter username:<input id="username" @bind="history.User" class="form-control" />
-            </div>
-            <div>
-                <button type="button" class="btn btn-success" @onclick="@(() => StartTimer())">Start</button>
-            </div>
-            <div class="col-1">
-                @if (IsConnected)
+    @if (GameComplete)
+
+    {
+        <div class="container">
+            <div class="col">
+                <div class="row"><h3>Player: @history.User</h3></div>
+                <div class="row"><h3>Total Points: @history.TotalPoints</h3></div>
+                @foreach (string message in history.History)
                 {
-                    <p>This is where the fun begins.</p>
+                    <div class="row"><h3>@message</h3></div>
+                }
+            </div>
+            <div class="col">
+                <div class="row"><h3>Player: @opponetHistory.User</h3></div>
+                <div class="row"><h3>Total Points: @opponetHistory.TotalPoints</h3></div>
+                @foreach (string message in opponetHistory.History)
+                {
+                    <div class="row"><h3>@message</h3></div>
+                }
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="container">
+            <div class="col-2 float-start">
+                <div class="row">
+                    Please enter username:<input id="username" @bind="history.User" class="form-control" />
+                </div>
+                <div>
+                    <button type="button" class="btn btn-success" @onclick="@(() => StartTimer())">Start</button>
+                </div>
+                <div class="col-1">
+                    @if (IsConnected)
+                    {
+                        <p>This is where the fun begins.</p>
+                    }
+                    else
+                    {
+                        <p>All Batteries Fire!</p>
+                    }
+                </div>
+                <div class="row">
+                    <h3>Time Remaining:</h3>
+                    <p>@timeRemaning</p>
+                </div>
+                <div class="row">
+                    <h1>@ClickedLetters</h1>
+                </div>
+                <div class="row">
+                    <h1>@history.TotalPoints</h1>
+                </div>
+            </div>
+            <div class="col-6 mx-auto">
+                @*here are the keypad buttons*@
+                @if (history.User == "" && IsConnected)
+                {
+                    <div class="row">
+                        <div class="col">
+                            <h1>Please Enter a Username to start the Game.</h1>
+                        </div>
+                    </div>
                 }
                 else
                 {
-                    <p>All Batteries Fire!</p>
+                    @for (int i = 0; i < 4; i++)
+                    {
+                        <div class="row">
+                            @for (int j = 0; j < 4; j++)
+                            {
+                                int slot = (4 * i) + j;
+                                @if (!KeyPad[slot].Clicked)
+                                {
+                                    <div class="keyButton m-1" @onclick="@(() => KeyPadClick(slot))">@KeyPad[slot].Letter</div>
+                                }
+                                else
+                                {
+                                    <div class="keyButton_clicked m-1" @onclick="@(() => KeyPadClick(slot))">@KeyPad[slot].Letter</div>
+                                }
+                            }
+                        </div>
+                    }
                 }
             </div>
-            <div class="row">
-                <h3>Time Remaining:</h3>
-                <p>@timeRemaning</p>
-            </div>
-            <div class="row">
-                <h1>@ClickedLetters</h1>
-            </div>
-            <div class="row">
-                <h1>@history.TotalPoints</h1>
-            </div>
-        </div>
-        <div class="col-6 mx-auto">
-            @*here are the keypad buttons*@
-            @if (history.User == "" && IsConnected)
-            {
-                <div class="row">
-                    <div class="col">
-                        <h1>Please Enter a Username to start the Game.</h1>
-                    </div>
-                </div>
-            }
-            else
-            {
-                @for (int i = 0; i < 4; i++)
+
+
+            <div class="col-3 float-end">
+                @ErrorMessage
+                @foreach (string message in messeges)
                 {
                     <div class="row">
-                        @for (int j = 0; j < 4; j++)
-                        {
-                            int slot = (4 * i) + j;
-                            @if (!KeyPad[slot].Clicked)
-                            {
-                                <div class="keyButton m-1" @onclick="@(() => KeyPadClick(slot))">@KeyPad[slot].Letter</div>
-                            }
-                            else
-                            {
-                                <div class="keyButton_clicked m-1" @onclick="@(() => KeyPadClick(slot))">@KeyPad[slot].Letter</div>
-                            }
-                        }
+                        @message
                     </div>
                 }
-            }
+            </div>
         </div>
-        
-        <div class="col-3 float-end">
-            @ErrorMessage
-            @foreach (string message in messeges)
-            {
-                <div class="row">
-                    @message
-                </div>
-            }
-        </div>
-    </div>
+    }
 </body>
 
 
@@ -143,11 +169,13 @@
     private Timer aTimer;
     private int timeRemaning = 60;
     private int userCount = 0;
+    private bool GameComplete = false;
     //private List<DisplayPointMessage> displayMessages = new List<DisplayPointMessage>();
     private List<string> messeges = new List<string>();
 
 
-    private GameHistory history = new GameHistory("", 0, new Dictionary<string, int>());
+    private GameHistory history = new GameHistory("", 0, new List<string>());
+    private GameHistory opponetHistory = new GameHistory("", 0, new List<string>());
 
     private List<string> GuessedWords = new List<string>();
 
@@ -267,8 +295,9 @@
                     {
                         ErrorMessage = "";
                         int points = CalcPoints();
-                        DisplayPointMessage newMessage = new DisplayPointMessage(points, history.User + " scored " + points, 3);
+                        //DisplayPointMessage newMessage = new DisplayPointMessage(points, history.User + " scored " + points, 3);
                         //displayMessages.Add();
+                        history.History.Add("Word: " + ClickedLetters + " Points: " + points);
                         history.TotalPoints += points;
                         //ResetKeyPad();
                         await Send(history.User, points.ToString());
@@ -407,6 +436,7 @@
         });
 
         // start timer
+
         hubConnection.On ("StartTimer",() =>
         {       
             if(aTimer == null)
@@ -414,6 +444,7 @@
                 StartTimer();
             }
         });
+
 
         await hubConnection.StartAsync();
     }
@@ -436,11 +467,15 @@
 
     public async void StartTimer()
     {
+
         if(history.User != ""){
             await TimerCheck();
+
             timeRemaning = 60;
             //create timer at 1 second interval
-            if(aTimer == null){
+            if (aTimer == null)
+
+            {
                 aTimer = new System.Timers.Timer(1000);
             }
             else
@@ -457,12 +492,13 @@
     private void OnTimedEvent(Object source, ElapsedEventArgs e)
     {
 
-        if(timeRemaning > 0)
+        if (timeRemaning > 0)
         {
             timeRemaning -= 1;
         }
         else
         {
+            GameComplete = true;
             aTimer.Enabled = false;
             aTimer.Stop();
         }
