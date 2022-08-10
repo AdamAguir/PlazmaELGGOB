@@ -116,7 +116,7 @@
                         </div>
                     </div>
                 }
-                else
+                else if(GameStarted)
                 {
                     @for (int i = 0; i < 4; i++)
                     {
@@ -140,7 +140,7 @@
 
 
             <div class="col-3 float-end">
-                @ErrorMessage
+                <h3>@ErrorMessage</h3>
                 @foreach (string message in messeges)
                 {
                     <div class="row">
@@ -170,6 +170,7 @@
     private int timeRemaning = 60;
     private int userCount = 0;
     private bool GameComplete = false;
+    private bool GameStarted = false; 
     //private List<DisplayPointMessage> displayMessages = new List<DisplayPointMessage>();
     private List<string> messeges = new List<string>();
 
@@ -467,14 +468,13 @@
 
     public async void StartTimer()
     {
-
+        GameStarted = true;
         if(history.User != ""){
             await TimerCheck();
 
             timeRemaning = 60;
             //create timer at 1 second interval
             if (aTimer == null)
-
             {
                 aTimer = new System.Timers.Timer(1000);
             }
