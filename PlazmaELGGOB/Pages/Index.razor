@@ -56,22 +56,40 @@
     @if (GameComplete)
 
     {
-        <div class="container">
-            <div class="col">
-                <div class="row"><h3>Player: @history.User</h3></div>
-                <div class="row"><h3>Total Points: @history.TotalPoints</h3></div>
-                @foreach (string message in history.History)
-                {
-                    <div class="row"><h3>@message</h3></div>
-                }
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col">
+                    <div class="row"><h3>Player: @history.User</h3></div>
+                    <div class="row"><h3>Total Points: @history.TotalPoints</h3></div>
+                    @foreach (string message in history.History)
+                    {
+                        <div class="row"><h3>@message</h3></div>
+                    }
+                </div>
+                <div class="col">
+                    <div class="row"><h3>Player: @opponetHistory.User</h3></div>
+                    <div class="row"><h3>Total Points: @opponetHistory.TotalPoints</h3></div>
+                    @foreach (string message in opponetHistory.History)
+                    {
+                        <div class="row"><h3>@message</h3></div>
+                    }
+                </div>
             </div>
-            <div class="col">
-                <div class="row"><h3>Player: @opponetHistory.User</h3></div>
-                <div class="row"><h3>Total Points: @opponetHistory.TotalPoints</h3></div>
-                @foreach (string message in opponetHistory.History)
-                {
-                    <div class="row"><h3>@message</h3></div>
-                }
+            <div class="row">
+                <div class="col text-center">
+                    @if (history.TotalPoints == opponetHistory.TotalPoints)
+                    {
+                        <h2 class="text-primary">You Tie</h2>
+                    }
+                    else if (history.TotalPoints > opponetHistory.TotalPoints)
+                    {
+                        <h2 class="text-success">You Win!</h2>
+                    }
+                    else
+                    {
+                        <h2 class="text-danger">You Lose :(</h2>
+                    }
+                </div>
             </div>
         </div>
     }
@@ -82,23 +100,6 @@
                 <div class="row">
                     Please enter username:<input id="username" @bind="history.User" class="form-control" />
                 </div>
-                <div>
-                    <button type="button" class="btn btn-success" @onclick="@(() => StartTimer())">Start</button>
-                </div>
-                <div class="col-1">
-                    @if (IsConnected)
-                    {
-                        <p>This is where the fun begins.</p>
-                    }
-                    else
-                    {
-                        <p>All Batteries Fire!</p>
-                    }
-                </div>
-                <div class="row">
-                    <h3>Time Remaining:</h3>
-                    <p>@timeRemaning</p>
-                </div>
                 <div class="row">
                     <h1>@ClickedLetters</h1>
                 </div>
@@ -107,6 +108,29 @@
                 </div>
             </div>
             <div class="col-6 mx-auto">
+                <div class="row">
+                    @if (aTimer != null)
+                    {
+                        <div class="row">
+                            <div class="col border-5 border-dark">
+                                @if (timeRemaning > 10)
+                                {
+                                    <h1 class="text-center text-success">@timeRemaning</h1>
+                                }
+                                else
+                                {
+                                    <h1 class="text-center text-danger">@timeRemaning</h1>
+                                }
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="col">
+                            <button type="button" class="btn btn-success w-100" @onclick="@(() => StartTimer())">Start</button>
+                        </div>
+                    }
+                </div>
                 @*here are the keypad buttons*@
                 @if (history.User == "" && IsConnected)
                 {
@@ -435,11 +459,17 @@
 
         });
 
+        hubConnection.On<GameHistory>("RecieveHistory", (sendHistory) =>
+        {
+            opponetHistory = sendHistory;
+            InvokeAsync(StateHasChanged);
+        });
+
         // start timer
 
-        hubConnection.On ("StartTimer",() =>
-        {       
-            if(aTimer == null)
+        hubConnection.On("StartTimer", () =>
+        {
+            if (aTimer == null)
             {
                 StartTimer();
             }
@@ -459,16 +489,25 @@
 
     private async Task TimerCheck()
     {
-        if(hubConnection is not null)
+        if (hubConnection is not null)
         {
             await hubConnection.SendAsync("TimerCheck");
+        }
+    }
+
+    private async Task SendHistory()
+    {
+        if (hubConnection is not null)
+        {
+            await hubConnection.SendAsync("SendGameHistory", history);
         }
     }
 
     public async void StartTimer()
     {
 
-        if(history.User != ""){
+        if (history.User != "")
+        {
             await TimerCheck();
 
             timeRemaning = 60;
@@ -489,7 +528,7 @@
         }
     }
 
-    private void OnTimedEvent(Object source, ElapsedEventArgs e)
+    private async void OnTimedEvent(Object source, ElapsedEventArgs e)
     {
 
         if (timeRemaning > 0)
@@ -498,11 +537,12 @@
         }
         else
         {
+            await SendHistory();
             GameComplete = true;
             aTimer.Enabled = false;
             aTimer.Stop();
         }
-        InvokeAsync(StateHasChanged);
+        await InvokeAsync(StateHasChanged);
 
     }
 }

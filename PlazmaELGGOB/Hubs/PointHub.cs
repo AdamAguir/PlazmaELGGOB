@@ -44,5 +44,10 @@ namespace PlazmaELGGOB.Hubs
             return Clients.All.SendAsync("StartTimer");
         }
 
+        public Task SendGameHistory(GameHistory sendHistory)
+        {
+            return Clients.Others.SendAsync("RecieveHistory", sendHistory);
+        }
+
     }
 }
