@@ -12,7 +12,107 @@
 @implements IAsyncDisposable
 @inject NavigationManager navManager
 
+
+<style type="text/css" media="screen and (max-width:959px)">
+    .txtGuessed {
+        font-size: 10px;
+    }
+    .keyButton {
+        
+       width: 30px;
+        height: 30px;
+        border: none;
+        border-radius: 15px;
+        outline: none;
+        background: #18053b;
+        color: white;
+        cursor: pointer;
+        box-shadow: 0 5px 10px rgba(0, 0, 0, 0.15);
+        text-align: center;
+        padding-top: 10px;
+    }
+     .keyButton_clicked {
+        width: 30px;
+        height: 30px;
+        border: none;
+        border-radius: 15px;
+        outline: none;
+        background: #091580;
+        color: white;
+        cursor: pointer;
+        box-shadow: 0 5px 10px rgba(0, 0, 0, 0.15);
+        text-align: center;
+        padding-top: 10px;
+        -webkit-box-shadow: inset 0px 0px 5px #c1c1c1;
+        -moz-box-shadow: inset 0px 0px 5px #c1c1c1;
+        box-shadow: inset 0px 0px 5px #c1c1c1;
+    }
+
+</style>
+
+<style type="text/css" media="screen and (min-width:959px)">
+    .txtGuessed {
+        font-size: 40px;
+    }
+
+     .keyButton {
+        width: 80px;
+        height: 80px;
+        border: none;
+        border-radius: 40px;
+        outline: none;
+        background: #18053b;
+        color: white;
+        cursor: pointer;
+        box-shadow: 0 5px 10px rgba(0, 0, 0, 0.15);
+        text-align: center;
+        padding-top: 15px;
+
+       
+    }
+     .keyButton_clicked {
+        width: 80px;
+        height: 80px;
+        border: none;
+        border-radius: 40px;
+        outline: none;
+        background: #091580;
+        color: white;
+        cursor: pointer;
+        box-shadow: 0 5px 10px rgba(0, 0, 0, 0.15);
+        text-align: center;
+        padding-top: 15px;
+        -webkit-box-shadow: inset 0px 0px 5px #c1c1c1;
+        -moz-box-shadow: inset 0px 0px 5px #c1c1c1;
+        box-shadow: inset 0px 0px 5px #c1c1c1;
+    }
+
+</style>
+
+
+
 <style>
+   /* @@ media only screen and (max-width: 600px) {
+        body {
+            background-color: red;
+        }
+   .keyButton {
+        
+       width: 10px;
+        height: 10px;
+        border: none;
+        border-radius: 15px;
+        outline: none;
+        background: #18053b;
+        color: white;
+        cursor: pointer;
+        box-shadow: 0 5px 10px rgba(0, 0, 0, 0.15);
+        text-align: center;
+        padding-top: 10px;
+    }
+}
+
+
     .keyButton {
         width: 80px;
         height: 80px;
@@ -25,13 +125,15 @@
         box-shadow: 0 5px 10px rgba(0, 0, 0, 0.15);
         text-align: center;
         padding-top: 30px;
-    }
+
+       
+    }*/
 
         .keyButton:hover {
             background: #091580;
         }
 
-    .keyButton_clicked {
+    /*.keyButton_clicked {
         width: 80px;
         height: 80px;
         border: none;
@@ -46,7 +148,7 @@
         -webkit-box-shadow: inset 0px 0px 5px #c1c1c1;
         -moz-box-shadow: inset 0px 0px 5px #c1c1c1;
         box-shadow: inset 0px 0px 5px #c1c1c1;
-    }
+    }*/
 </style>
 <PageTitle>Game</PageTitle>
 
@@ -101,7 +203,7 @@
                     Please enter username:<input id="username" @bind="history.User" class="form-control" />
                 </div>
                 <div class="row">
-                    <h1>@ClickedLetters</h1>
+                    <div class="txtGuessed">@ClickedLetters</div>
                 </div>
                 <div class="row">
                     <h1>@history.TotalPoints</h1>
@@ -150,11 +252,11 @@
                                 int slot = (4 * i) + j;
                                 @if (!KeyPad[slot].Clicked)
                                 {
-                                    <div class="keyButton m-1" @onclick="@(() => KeyPadClick(slot))">@KeyPad[slot].Letter</div>
+                                    <div class="keyButton m-1 txtGuessed" @onclick="@(() => KeyPadClick(slot))">@KeyPad[slot].Letter</div>
                                 }
                                 else
                                 {
-                                    <div class="keyButton_clicked m-1" @onclick="@(() => KeyPadClick(slot))">@KeyPad[slot].Letter</div>
+                                    <div class="keyButton_clicked m-1 txtGuessed" @onclick="@(() => KeyPadClick(slot))">@KeyPad[slot].Letter</div>
                                 }
                             }
                         </div>
@@ -164,10 +266,10 @@
 
 
             <div class="col-3 float-end">
-                <h3>@ErrorMessage</h3>
+                <div class="txtGuessed">@ErrorMessage</div>
                 @foreach (string message in messeges)
                 {
-                    <div class="row">
+                    <div class="row txtGuessed">
                         @message
                     </div>
                 }
